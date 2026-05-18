@@ -1,0 +1,208 @@
+use serde::Serialize;
+
+#[derive(Clone, Serialize)]
+pub struct LanguageInfo {
+    pub id: String,
+    pub name: String,
+    pub version: String,
+    pub extension: String,
+    pub template: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+}
+
+pub struct LanguageConfig {
+    pub info: LanguageInfo,
+    pub source_filename: String,
+    pub aux_files: Vec<(String, String)>,
+    pub compile_cmd: Option<Vec<String>>,
+    pub run_cmd: Vec<String>,
+}
+
+pub fn all_languages() -> Vec<LanguageConfig> {
+    vec![
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "html".into(),
+                name: "HTML".into(),
+                version: "Live".into(),
+                extension: "html".into(),
+                template: "<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    body { background: #111; color: #fff; font-family: sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }\n    h1 { color: #4fc3f7; }\n  </style>\n</head>\n<body>\n  <h1>Hello, World!</h1>\n</body>\n</html>".into(),
+                category: Some("web".into()),
+            },
+            source_filename: "index.html".into(),
+            aux_files: vec![],
+            compile_cmd: None,
+            run_cmd: vec!["cat".into(), "{file}".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "css".into(),
+                name: "CSS".into(),
+                version: "Live".into(),
+                extension: "css".into(),
+                template: "body {\n  background: #0a0a0a;\n  color: #e0e0e0;\n  font-family: system-ui, sans-serif;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  min-height: 100vh;\n  margin: 0;\n}\n\n.card {\n  background: #1a1a2e;\n  border: 1px solid #2a2a4e;\n  border-radius: 12px;\n  padding: 2rem 3rem;\n  text-align: center;\n}\n\n.card h1 {\n  color: #4fc3f7;\n  margin: 0 0 0.5rem;\n}\n\n.card p {\n  color: #888;\n  margin: 0;\n}".into(),
+                category: Some("web".into()),
+            },
+            source_filename: "style.css".into(),
+            aux_files: vec![],
+            compile_cmd: None,
+            run_cmd: vec!["cat".into(), "{file}".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "python".into(),
+                name: "Python".into(),
+                version: "3.13.12".into(),
+                extension: "py".into(),
+                template: "def greet(name):\n    return f\"Hello, {name}!\"\n\nprint(greet(\"World\"))".into(),
+                category: None,
+            },
+            source_filename: "main.py".into(),
+            aux_files: vec![],
+            compile_cmd: None,
+            run_cmd: vec!["python3".into(), "{file}".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "javascript".into(),
+                name: "JavaScript".into(),
+                version: "Node 22.22.2".into(),
+                extension: "js".into(),
+                template: "function greet(name) {\n    return `Hello, ${name}!`;\n}\n\nconsole.log(greet(\"World\"));".into(),
+                category: None,
+            },
+            source_filename: "main.js".into(),
+            aux_files: vec![],
+            compile_cmd: None,
+            run_cmd: vec!["node".into(), "{file}".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "typescript".into(),
+                name: "TypeScript".into(),
+                version: "6.0.3".into(),
+                extension: "ts".into(),
+                template: "const greeting: string = \"Hello, World!\";\nconsole.log(greeting);".into(),
+                category: None,
+            },
+            source_filename: "main.ts".into(),
+            aux_files: vec![],
+            compile_cmd: Some(vec![
+                "tsc".into(),
+                "--outDir".into(),
+                "{dir}".into(),
+                "--rootDir".into(),
+                "{dir}".into(),
+                "--target".into(),
+                "ES2022".into(),
+                "{file}".into(),
+            ]),
+            run_cmd: vec!["node".into(), "{dir}/main.js".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "java".into(),
+                name: "Java".into(),
+                version: "OpenJDK 21".into(),
+                extension: "java".into(),
+                template: "public class Main {\n    public static void main(String[] args) {\n        System.out.println(\"Hello, World!\");\n    }\n}".into(),
+                category: None,
+            },
+            source_filename: "Main.java".into(),
+            aux_files: vec![],
+            compile_cmd: Some(vec!["javac".into(), "{file}".into()]),
+            run_cmd: vec!["java".into(), "-cp".into(), "{dir}".into(), "Main".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "c".into(),
+                name: "C".into(),
+                version: "GCC 15.2.1".into(),
+                extension: "c".into(),
+                template: "#include <stdio.h>\n\nint main() {\n    printf(\"Hello, World!\\n\");\n    return 0;\n}".into(),
+                category: None,
+            },
+            source_filename: "main.c".into(),
+            aux_files: vec![],
+            compile_cmd: Some(vec![
+                "gcc".into(),
+                "{file}".into(),
+                "-o".into(),
+                "{dir}/main".into(),
+                "-Wall".into(),
+            ]),
+            run_cmd: vec!["{dir}/main".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "cpp".into(),
+                name: "C++".into(),
+                version: "G++ 15.2.1".into(),
+                extension: "cpp".into(),
+                template: "#include <iostream>\n\nint main() {\n    std::cout << \"Hello, World!\" << std::endl;\n    return 0;\n}".into(),
+                category: None,
+            },
+            source_filename: "main.cpp".into(),
+            aux_files: vec![],
+            compile_cmd: Some(vec![
+                "g++".into(),
+                "{file}".into(),
+                "-o".into(),
+                "{dir}/main".into(),
+                "-Wall".into(),
+            ]),
+            run_cmd: vec!["{dir}/main".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "csharp".into(),
+                name: "C#".into(),
+                version: ".NET 10.0.300".into(),
+                extension: "cs".into(),
+                template: "Console.WriteLine(\"Hello, World!\");".into(),
+                category: None,
+            },
+            source_filename: "Program.cs".into(),
+            aux_files: vec![(
+                "Program.csproj".into(),
+                r#"<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings></PropertyGroup></Project>"#.into(),
+            )],
+            compile_cmd: None,
+            run_cmd: vec!["dotnet".into(), "run".into(), "--project".into(), "{dir}".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "rust".into(),
+                name: "Rust".into(),
+                version: "1.93.1".into(),
+                extension: "rs".into(),
+                template: "fn main() {\n    println!(\"Hello, World!\");\n}".into(),
+                category: None,
+            },
+            source_filename: "main.rs".into(),
+            aux_files: vec![],
+            compile_cmd: Some(vec![
+                "rustc".into(),
+                "{file}".into(),
+                "-o".into(),
+                "{dir}/main".into(),
+            ]),
+            run_cmd: vec!["{dir}/main".into()],
+        },
+        LanguageConfig {
+            info: LanguageInfo {
+                id: "lua".into(),
+                name: "Lua".into(),
+                version: "5.4.8".into(),
+                extension: "lua".into(),
+                template: "function greet(name)\n    return string.format(\"Hello, %s!\", name)\nend\n\nprint(greet(\"World\"))".into(),
+                category: None,
+            },
+            source_filename: "main.lua".into(),
+            aux_files: vec![],
+            compile_cmd: None,
+            run_cmd: vec!["lua".into(), "{file}".into()],
+        },
+    ]
+}
