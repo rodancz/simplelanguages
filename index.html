@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0a0a">
+    <meta name="description" content="The most lightweight programming language executor">
+    <title>simplelanguages.com</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>&#x26a1;</text></svg>">
+</head>
+<body>
+    <nav id="topbar">
+        <button id="fav-btn" title="Favorites">★</button>
+        <select id="language-select"></select>
+        <button id="run-btn" title="Run (Ctrl+Enter)">▶ Run</button>
+        <div class="spacer"></div>
+        <button id="settings-btn" title="Settings">⚙</button>
+        <button id="plugin-btn" title="Plugins">Plugins</button>
+    </nav>
+    <div id="tabbar" class="hidden"></div>
+    <div id="stdin-panel" class="hidden">
+        <input id="stdin-input" placeholder="stdin (optional)…">
+    </div>
+    <main>
+        <div id="editor"></div>
+        <div id="web-preview" class="hidden"></div>
+        <div id="output">
+            <div id="output-toolbar">
+                <span id="exec-time"></span>
+                <span class="dot" id="save-dot" title="Auto-saved">●</span>
+                <button id="clear-output" title="Clear output">Clear</button>
+                <button id="copy-output" title="Copy output to clipboard">Copy</button>
+            </div>
+            <div id="output-content"></div>
+        </div>
+    </main>
+    <div id="statusbar">
+        <span id="status-lang"></span>
+        <span id="status-cursor"></span>
+        <span id="status-indent"></span>
+        <span id="status-preprocessor"></span>
+    </div>
+    <aside id="plugin-panel" class="closed">
+        <div class="panel-header">
+            <span>Plugins</span>
+            <input id="plugin-search" placeholder="Filter…">
+            <button id="plugin-close">&times;</button>
+        </div>
+        <div class="panel-body" id="plugin-list"></div>
+    </aside>
+    <div id="settings-panel" class="closed">
+        <div class="panel-header"><span>Settings</span><button id="settings-close">&times;</button></div>
+        <div class="panel-body">
+            <label class="setting"><span>Word Wrap</span><input type="checkbox" id="set-wrap"></label>
+            <label class="setting"><span>Font Size</span><input type="number" id="set-fontsize" min="10" max="24" value="14"></label>
+            <label class="setting"><span>Indent</span><select id="set-indent"><option value="2">2 spaces</option><option value="4" selected>4 spaces</option><option value="8">8 spaces</option><option value="\t">Tabs</option></select></label>
+            <label class="setting"><span>Keymap</span><select id="set-keymap"><option value="default" selected>Default</option></select></label>
+        </div>
+    </div>
+    <button id="mobile-run" class="hidden" title="Run">▶</button>
+    <div id="keyboard-bar" class="hidden">
+        <button data-key="Tab">⇥</button>
+        <button data-key="(">(</button>
+        <button data-key=")">)</button>
+        <button data-key="{">{</button>
+        <button data-key="}">}</button>
+        <button data-key="[">[</button>
+        <button data-key="]">]</button>
+        <button data-key='"'>&#34;</button>
+        <button data-key="'">&#39;</button>
+        <button data-key="=">=</button>
+        <button data-key=";">;</button>
+        <button class="kb-close" title="Hide keyboard">✕</button>
+    </div>
+    <div id="help-overlay" class="hidden">
+        <div class="help-content">
+            <h3>Shortcuts</h3>
+            <div><kbd>Ctrl+Enter</kbd> Run code</div>
+            <div><kbd>Ctrl+F</kbd> Find / Zen toggle</div>
+            <div><kbd>Ctrl+Shift+L</kbd> Focus language</div>
+            <div><kbd>Ctrl+Shift+S</kbd> Share URL</div>
+            <div><kbd>Ctrl+,</kbd> Focus stdin</div>
+            <div><kbd>Esc</kbd> Close panels</div>
+            <div><kbd>?</kbd> This help</div>
+        </div>
+    </div>
+    <div id="share-toast">Link copied!</div>
+    <script type="module" src="/js/bundle.js"></script>
+</body>
+</html>
