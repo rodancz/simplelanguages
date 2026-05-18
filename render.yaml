@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: simplelanguages-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "3000"

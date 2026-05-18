@@ -22,6 +22,7 @@ async fn main() {
     let app = Router::new()
         .route("/api/languages", get(list_languages))
         .route("/api/execute", axum::routing::post(execute_code))
+        .route("/api/health", get(|| async { "ok" }))
         .fallback_service(ServeDir::new(frontend_dir))
         .layer(CorsLayer::permissive())
         .with_state(state);

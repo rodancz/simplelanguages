@@ -14,6 +14,8 @@ const SK_SETTINGS = "sl_settings";
 const SK_FAVS = "sl_favs";
 const SK_FILES = "sl_files_";
 
+const API_BASE = location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "" : "https://simplelanguages-backend.onrender.com";
+
 const PLUGINS = [
     { id: "go", name: "Go", desc: "Go language runtime with goroutines and GC.", cat: "language", ver: "1.24.x", tpl: 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, Go!")\n}' },
     { id: "ruby", name: "Ruby", desc: "Ruby interpreter for scripting and prototyping.", cat: "language", ver: "3.4.x", tpl: 'puts "Hello, Ruby!"' },
@@ -191,7 +193,7 @@ function getTemplate(lang) {
 
 async function buildLangSelector() {
     let backLangs = [];
-    try { const r = await fetch("/api/languages"); backLangs = await r.json(); } catch {}
+    try { const r = await fetch(API_BASE + "/api/languages"); backLangs = await r.json(); } catch {}
     const sel = $("#language-select");
     sel.innerHTML = "";
     const favs = getFavs();
@@ -431,7 +433,7 @@ async function runCode() {
 
     try {
         const stdinVal = $("#stdin-input").value || "";
-        const resp = await fetch("/api/execute", {
+        const resp = await fetch(API_BASE + "/api/execute", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ language: lang, code, stdin: stdinVal }),
