@@ -2,7 +2,7 @@
     "name": "simplelanguages",
     "short_name": "simplelanguages",
     "description": "The most lightweight programming language executor",
-    "start_url": "/",
+    "start_url": ".",
     "display": "standalone",
     "background_color": "#0a0a0a",
     "theme_color": "#0a0a0a",
