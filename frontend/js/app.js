@@ -17,14 +17,10 @@ const SK_FILES = "sl_files_";
 const API_BASE = location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "" : "https://simplelanguages-backend.onrender.com";
 
 const PLUGINS = [
-    { id: "go", name: "Go", desc: "Go language runtime with goroutines and GC.", cat: "language", ver: "1.24.x", tpl: 'package main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, Go!")\n}' },
-    { id: "ruby", name: "Ruby", desc: "Ruby interpreter for scripting and prototyping.", cat: "language", ver: "3.4.x", tpl: 'puts "Hello, Ruby!"' },
-    { id: "php", name: "PHP", desc: "PHP 8.x with common extensions preloaded.", cat: "language", ver: "8.4.x", tpl: '<?php\necho "Hello, PHP!";' },
-    { id: "swift", name: "Swift", desc: "Swift compiler for iOS/macOS-style development.", cat: "language", ver: "6.x", tpl: 'print("Hello, Swift!")' },
-    { id: "kotlin", name: "Kotlin", desc: "Kotlin JVM runtime for modern Java development.", cat: "language", ver: "2.1.x", tpl: 'fun main() {\n    println("Hello, Kotlin!")\n}' },
-    { id: "haskell", name: "Haskell", desc: "GHC Haskell with GHCi REPL and standard library.", cat: "language", ver: "9.12.x", tpl: 'main :: IO ()\nmain = putStrLn "Hello, Haskell!"' },
-    { id: "lua_pl", name: "Lua", desc: "Lua 5.4 scripting engine, lightweight and embeddable.", cat: "language", ver: "5.4.8", tpl: 'print("Hello, Lua!")' },
-    { id: "zig", name: "Zig", desc: "Zig compiler with fast compile times and C interop.", cat: "language", ver: "0.14.x", tpl: 'const std = @import("std");\n\npub fn main() void {\n    std.debug.print("Hello, Zig!\\n", .{});\n}' },
+    { id: "swift", name: "Swift", desc: "Swift compiler — coming soon.", cat: "language", ver: "6.x", tpl: 'print("Hello, Swift!")', upcoming: true },
+    { id: "kotlin", name: "Kotlin", desc: "Kotlin JVM runtime — coming soon.", cat: "language", ver: "2.1.x", tpl: 'fun main() {\n    println("Hello, Kotlin!")\n}', upcoming: true },
+    { id: "haskell", name: "Haskell", desc: "GHC Haskell — coming soon.", cat: "language", ver: "9.12.x", tpl: 'main :: IO ()\nmain = putStrLn "Hello, Haskell!"', upcoming: true },
+    { id: "zig", name: "Zig", desc: "Zig compiler — coming soon.", cat: "language", ver: "0.14.x", tpl: 'const std = @import("std");\n\npub fn main() void {\n    std.debug.print("Hello, Zig!\\n", .{});\n}', upcoming: true },
     { id: "openai-mcp", name: "OpenAI MCP", desc: "AI assistant powered by OpenAI models via MCP protocol.", cat: "ai", ver: "1.0.0" },
     { id: "claude-mcp", name: "Claude MCP", desc: "AI assistant powered by Anthropic Claude via MCP.", cat: "ai", ver: "1.0.0" },
     { id: "opencode-mcp", name: "OpenCode MCP", desc: "Connect OpenCode AI agent to execute and test code. This powers us right now.", cat: "ai", ver: "1.0.0" },
@@ -52,7 +48,6 @@ const langMods = {
     swift: () => import("@codemirror/lang-cpp").then(m => m.cpp()),
     kotlin: () => import("@codemirror/lang-java").then(m => m.java()),
     haskell: () => import("@codemirror/lang-cpp").then(m => m.cpp()),
-    lua_pl: () => import("@codemirror/lang-python").then(m => m.python()),
     lua: () => import("@codemirror/lang-python").then(m => m.python()),
     zig: () => import("@codemirror/lang-rust").then(m => m.rust()),
     ruby: () => import("@codemirror/lang-python").then(m => m.python()),
@@ -181,7 +176,7 @@ async function getLangExt(lang) {
 }
 
 function getFileName(lang) {
-    const extMap = { python: "py", javascript: "js", typescript: "ts", java: "java", c: "c", cpp: "cpp", csharp: "cs", rust: "rs", lua: "lua", html: "html", css: "css", go: "go", ruby: "rb", php: "php", swift: "swift", kotlin: "kt", haskell: "hs", zig: "zig", lua_pl: "lua" };
+    const extMap = { python: "py", javascript: "js", typescript: "ts", java: "java", c: "c", cpp: "cpp", csharp: "cs", rust: "rs", lua: "lua", html: "html", css: "css", go: "go", ruby: "rb", php: "php", swift: "swift", kotlin: "kt", haskell: "hs", zig: "zig" };
     const ext = extMap[lang] || lang;
     return "main." + ext;
 }
@@ -198,7 +193,7 @@ async function buildLangSelector() {
     sel.innerHTML = "";
     const favs = getFavs();
     const enabled = getEnabled();
-    const pluginIds = PLUGINS.filter(p => p.cat === "language" && enabled.includes(p.id)).map(p => p.id);
+    const pluginIds = PLUGINS.filter(p => p.cat === "language" && enabled.includes(p.id) && !p.upcoming).map(p => p.id);
     const allIds = [...backLangs.map(l => l.id), ...pluginIds];
 
     langs = [...backLangs];
@@ -441,6 +436,8 @@ async function runCode() {
         const data = await resp.json();
 
         let html = "";
+        if (data.compile_cmd) html += `<div class="cmd-info"><span class="cmd-label">$ compile</span> ${esc(data.compile_cmd.join(" "))}</div>`;
+        if (data.run_cmd) html += `<div class="cmd-info"><span class="cmd-label">$ run</span> ${esc(data.run_cmd.join(" "))}</div>`;
         if (data.stdout) html += `<span class="stdout">${esc(data.stdout)}</span>`;
         if (data.stderr) html += `<span class="stderr">${esc(data.stderr)}</span>`;
 
@@ -519,8 +516,13 @@ function bindEvents() {
         buildLangSelector();
     });
 
-    // Stdin
-    $("#stdin-input").addEventListener("focus", () => $("#stdin-panel").classList.remove("hidden"));
+    // Mobile web preview close
+    const wpc = $("#web-preview-close");
+    if (wpc) wpc.addEventListener("click", () => {
+        const prev = $("#web-preview");
+        if (prev) prev.classList.add("hidden");
+        leaveWebMode();
+    });
 
     // Keyboard bar
     $("#keyboard-bar").querySelectorAll("button[data-key]").forEach(b => {
@@ -685,14 +687,15 @@ function renderPlugins() {
         plugins.forEach(p => {
             const isInstalled = installed.includes(p.id);
             const isEnabled = enabled.includes(p.id);
+            const upcoming = p.upcoming;
             html += `<div class="plugin-entry">
                 <div class="plugin-info">
-                    <div class="plugin-name">${esc(p.name)}${isEnabled ? ' <span class="plugin-active-badge">on</span>' : ''}</div>
+                    <div class="plugin-name">${esc(p.name)}${isEnabled && !upcoming ? ' <span class="plugin-active-badge">on</span>' : ''}${upcoming ? ' <span class="plugin-upcoming-badge">soon</span>' : ''}</div>
                     <div class="plugin-desc">${esc(p.desc)}</div>
                     ${p.ver ? `<div class="plugin-version">v${p.ver}</div>` : ''}
                 </div>
                 <div class="plugin-action" data-plugin="${p.id}">
-                    ${isInstalled ? `<button class="btn-enable${isEnabled ? ' enabled' : ''}">${isEnabled ? 'Disable' : 'Enable'}</button><button class="btn-remove">&times;</button>` : '<button class="btn-install">Install</button>'}
+                    ${upcoming ? '<span class="plugin-disabled">Coming Soon</span>' : (isInstalled ? `<button class="btn-enable${isEnabled ? ' enabled' : ''}">${isEnabled ? 'Disable' : 'Enable'}</button><button class="btn-remove">&times;</button>` : '<button class="btn-install">Install</button>')}
                 </div>
             </div>`;
         });

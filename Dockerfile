@@ -12,10 +12,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     default-jdk \
     gcc g++ \
     lua5.4 \
+    golang-go \
+    ruby \
+    php-cli \
     && ln -sf /usr/bin/lua5.4 /usr/bin/lua \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN npm install -g typescript tsx
+
+RUN pip3 install --break-system-packages numpy pandas requests flask matplotlib
 
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c 10.0
 

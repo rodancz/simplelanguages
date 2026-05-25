@@ -12,6 +12,8 @@ pub struct ExecutionResult {
     pub exit_code: i32,
     pub wall_time_ms: u64,
     pub timed_out: bool,
+    pub compile_cmd: Option<Vec<String>>,
+    pub run_cmd: Vec<String>,
 }
 
 pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> ExecutionResult {
@@ -23,6 +25,8 @@ pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> Execu
             exit_code: 1,
             wall_time_ms: 0,
             timed_out: false,
+            compile_cmd: config.compile_cmd.clone(),
+            run_cmd: config.run_cmd.clone(),
         };
     }
 
@@ -36,6 +40,8 @@ pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> Execu
                 exit_code: 1,
                 wall_time_ms: 0,
                 timed_out: false,
+                compile_cmd: config.compile_cmd.clone(),
+                run_cmd: config.run_cmd.clone(),
             };
         }
     }
@@ -49,14 +55,17 @@ pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> Execu
             exit_code: 1,
             wall_time_ms: 0,
             timed_out: false,
+            compile_cmd: config.compile_cmd.clone(),
+            run_cmd: config.run_cmd.clone(),
         };
     }
 
     let overall_start = Instant::now();
+    let compiled_cmd = config.compile_cmd.as_ref().map(|t| build_command(t, &source_file, &tmp_dir));
+    let run_cmd = build_command(&config.run_cmd, &source_file, &tmp_dir);
 
-    if let Some(compile_cmd) = &config.compile_cmd {
-        let cmd = build_command(compile_cmd, &source_file, &tmp_dir);
-        let result = run_process(&cmd, &tmp_dir, 30).await;
+    if let Some(cmd) = &compiled_cmd {
+        let result = run_process(cmd, &tmp_dir, 30).await;
         if result.exit_code != 0 || result.timed_out {
             let _ = std::fs::remove_dir_all(&tmp_dir);
             return ExecutionResult {
@@ -65,11 +74,12 @@ pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> Execu
                 exit_code: result.exit_code,
                 wall_time_ms: result.wall_time_ms,
                 timed_out: result.timed_out,
+                compile_cmd: compiled_cmd,
+                run_cmd,
             };
         }
     }
 
-    let run_cmd = build_command(&config.run_cmd, &source_file, &tmp_dir);
     let result = run_process(&run_cmd, &tmp_dir, 30).await;
 
     let _ = std::fs::remove_dir_all(&tmp_dir);
@@ -80,6 +90,8 @@ pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> Execu
         exit_code: result.exit_code,
         wall_time_ms: overall_start.elapsed().as_millis() as u64,
         timed_out: result.timed_out,
+        compile_cmd: compiled_cmd,
+        run_cmd,
     }
 }
 
@@ -103,6 +115,8 @@ async fn run_process(cmd: &[String], work_dir: &Path, timeout_secs: u64) -> Exec
             exit_code: 1,
             wall_time_ms: 0,
             timed_out: false,
+            compile_cmd: None,
+            run_cmd: vec![],
         };
     }
 
@@ -124,6 +138,8 @@ async fn run_process(cmd: &[String], work_dir: &Path, timeout_secs: u64) -> Exec
                 exit_code: 1,
                 wall_time_ms: start.elapsed().as_millis() as u64,
                 timed_out: false,
+                compile_cmd: None,
+                run_cmd: vec![],
             };
         }
     };
@@ -142,6 +158,8 @@ async fn run_process(cmd: &[String], work_dir: &Path, timeout_secs: u64) -> Exec
                 exit_code: 1,
                 wall_time_ms: start.elapsed().as_millis() as u64,
                 timed_out: false,
+                compile_cmd: None,
+                run_cmd: vec![],
             };
         }
         Err(_elapsed) => {
@@ -154,6 +172,8 @@ async fn run_process(cmd: &[String], work_dir: &Path, timeout_secs: u64) -> Exec
                 exit_code: 124,
                 wall_time_ms: timeout_secs * 1000,
                 timed_out: true,
+                compile_cmd: None,
+                run_cmd: vec![],
             };
         }
     };
@@ -164,5 +184,7 @@ async fn run_process(cmd: &[String], work_dir: &Path, timeout_secs: u64) -> Exec
         exit_code: output.status.code().unwrap_or(-1),
         wall_time_ms: start.elapsed().as_millis() as u64,
         timed_out: false,
+        compile_cmd: None,
+        run_cmd: vec![],
     }
 }

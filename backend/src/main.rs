@@ -43,7 +43,12 @@ async fn main() {
 async fn list_languages(
     State(state): State<Arc<AppState>>,
 ) -> Json<Vec<language::LanguageInfo>> {
-    Json(state.languages.iter().map(|l| l.info.clone()).collect())
+    Json(state.languages.iter().map(|l| {
+        let mut info = l.info.clone();
+        info.compile_cmd = l.compile_cmd.clone();
+        info.run_cmd = Some(l.run_cmd.clone());
+        info
+    }).collect())
 }
 
 async fn execute_code(
@@ -61,6 +66,8 @@ async fn execute_code(
                 exit_code: result.exit_code,
                 wall_time_ms: result.wall_time_ms,
                 timed_out: result.timed_out,
+                compile_cmd: result.compile_cmd,
+                run_cmd: Some(result.run_cmd),
             })
         }
         None => Json(models::ExecuteResponse {
@@ -69,6 +76,8 @@ async fn execute_code(
             exit_code: 1,
             wall_time_ms: 0,
             timed_out: false,
+            compile_cmd: None,
+            run_cmd: None,
         }),
     }
 }
