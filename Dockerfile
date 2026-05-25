@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -sf /usr/bin/lua5.4 /usr/bin/lua \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN npm install -g typescript
+RUN npm install -g typescript tsx
 
 RUN curl -fsSL https://dot.net/v1/dotnet-install.sh | bash -s -- -c 10.0
 

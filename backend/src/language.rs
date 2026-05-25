@@ -88,17 +88,8 @@ pub fn all_languages() -> Vec<LanguageConfig> {
             },
             source_filename: "main.ts".into(),
             aux_files: vec![],
-            compile_cmd: Some(vec![
-                "tsc".into(),
-                "--outDir".into(),
-                "{dir}".into(),
-                "--rootDir".into(),
-                "{dir}".into(),
-                "--target".into(),
-                "ES2022".into(),
-                "{file}".into(),
-            ]),
-            run_cmd: vec!["node".into(), "{dir}/main.js".into()],
+            compile_cmd: None,
+            run_cmd: vec!["tsx".into(), "{file}".into()],
         },
         LanguageConfig {
             info: LanguageInfo {
