@@ -138,7 +138,7 @@ async function createEditor(langExt, code) {
             wrapConf.of(settings.wordWrap ? EditorView.lineWrapping : []),
             keymap.of([{ key: "Mod-f", run: toggleFind, preventDefault: true }]),
             EditorView.updateListener.of(upd => {
-                if (upd.docChanged) saveDocs();
+                if (upd.docChanged) { saveDocs(); updateWebPreview(); }
                 if (upd.selectionSet) updateStatus();
             }),
         ],
@@ -291,7 +291,7 @@ function saveCurFile() {
     }
 }
 
-function addFile() {
+async function addFile() {
     saveCurFile();
     const name = prompt("File name:", "main.c");
     if (!name) return;
@@ -301,7 +301,8 @@ function addFile() {
     files.push({ name, code: getTemplate(lang), lang });
     activeFile = files.length - 1;
     editors[0].dispatch({ changes: { from: 0, to: editors[0].state.doc.length, insert: files[activeFile].code } });
-    langConf.reconfigure(getLangExt(lang));
+    const langExt = await getLangExt(lang);
+    editors[0].dispatch({ effects: langConf.reconfigure(langExt) });
     buildTabs();
     if (isWebMode()) enterWebMode(); else leaveWebMode();
 }

@@ -136,6 +136,7 @@ pub fn all_languages() -> Vec<LanguageConfig> {
             aux_files: vec![],
             compile_cmd: Some(vec![
                 "gcc".into(),
+                "-O0".into(),
                 "{file}".into(),
                 "-o".into(),
                 "{dir}/main".into(),
@@ -158,6 +159,7 @@ pub fn all_languages() -> Vec<LanguageConfig> {
             aux_files: vec![],
             compile_cmd: Some(vec![
                 "g++".into(),
+                "-O0".into(),
                 "{file}".into(),
                 "-o".into(),
                 "{dir}/main".into(),
@@ -199,6 +201,14 @@ pub fn all_languages() -> Vec<LanguageConfig> {
             aux_files: vec![],
             compile_cmd: Some(vec![
                 "rustc".into(),
+                "-C".into(),
+                "opt-level=0".into(),
+                "-C".into(),
+                "codegen-units=256".into(),
+                "-C".into(),
+                "debuginfo=0".into(),
+                "-C".into(),
+                "incremental={dir}/incr".into(),
                 "{file}".into(),
                 "-o".into(),
                 "{dir}/main".into(),
