@@ -385,18 +385,31 @@ function updateWebPreview() {
         if (!finalHtml.includes("<style>")) {
             finalHtml = finalHtml.replace("<head>", `<head><style>${css}</style>`);
         }
+        if (!finalHtml.includes("<head>")) {
+            finalHtml = `<head><style>${css}</style></head>` + finalHtml;
+        }
     }
     let jsTag = js;
     if (useBabel && js) {
-        jsTag = `<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script type="text/babel">${js}</script>`;
+        jsTag = `<script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+<script type="text/babel">${js}<\/script>`;
     } else if (js) {
-        jsTag = `<script>${js}</script>`;
+        jsTag = `<script>${js}<\/script>`;
     }
-    finalHtml = finalHtml.replace("</body>", jsTag + "</body>");
-    if (!finalHtml.includes("<body>")) finalHtml = finalHtml.replace("<body>", "<body>" + jsTag);
+    if (finalHtml.includes("</body>")) {
+        finalHtml = finalHtml.replace("</body>", jsTag + "</body>");
+    } else if (finalHtml.includes("<body>")) {
+        finalHtml = finalHtml.replace("<body>", "<body>" + jsTag);
+    } else {
+        finalHtml += jsTag;
+    }
 
-    prev.innerHTML = `<iframe srcdoc="${finalHtml.replace(/"/g, '&quot;')}"></iframe>`;
+    let iframe = prev.querySelector("iframe");
+    if (!iframe) {
+        iframe = document.createElement("iframe");
+        prev.appendChild(iframe);
+    }
+    iframe.srcdoc = finalHtml;
 }
 
 async function switchLanguage() {
