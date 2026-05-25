@@ -65,7 +65,7 @@ pub async fn execute(config: &LanguageConfig, code: &str, _stdin: &str) -> Execu
     let run_cmd = build_command(&config.run_cmd, &source_file, &tmp_dir);
 
     if let Some(cmd) = &compiled_cmd {
-        let result = run_process(cmd, &tmp_dir, 30).await;
+        let result = run_process(cmd, &tmp_dir, 60).await;
         if result.exit_code != 0 || result.timed_out {
             let _ = std::fs::remove_dir_all(&tmp_dir);
             return ExecutionResult {

@@ -3,7 +3,9 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/root/.dotnet:/root/.cargo/bin:${PATH}" \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
-    DOTNET_NOLOGO=1
+    DOTNET_NOLOGO=1 \
+    GOCACHE=/tmp/.cache/go-build \
+    GOMODCACHE=/tmp/.cache/go-mod
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl ca-certificates build-essential pkg-config libssl-dev \
