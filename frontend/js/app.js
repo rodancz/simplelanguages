@@ -627,6 +627,8 @@ function closeAllPanels() {
     if ($("#settings-panel").classList.contains("open")) toggleSettings();
     if (!$("#help-overlay").classList.contains("hidden")) toggleHelp();
     if ($("#stdin-panel").classList.contains("visible")) $("#stdin-panel").classList.add("hidden");
+    if (!$("#admin-overlay").classList.contains("hidden")) $("#admin-overlay").classList.add("hidden");
+    if (!$("#plugin-create-overlay").classList.contains("hidden")) $("#plugin-create-overlay").classList.add("hidden");
 }
 
 function toggleSettings() {
@@ -828,23 +830,30 @@ function handlePlugin(id, action) {
 }
 
 function initCreatePlugin() {
-    $("#btn-create-plugin").addEventListener("click", () => {
-        $("#plugin-create-overlay").classList.remove("hidden");
-        $("#pcf-error").classList.add("hidden");
-        $("#pcf-success").classList.add("hidden");
-        $("#plugin-create-form").reset();
+    const createBtn = $("#btn-create-plugin");
+    if (!createBtn) return;
+    createBtn.addEventListener("click", () => {
+        const overlay = $("#plugin-create-overlay");
+        if (!overlay) return;
+        overlay.classList.remove("hidden");
+        const err = $("#pcf-error"); if (err) err.classList.add("hidden");
+        const ok = $("#pcf-success"); if (ok) ok.classList.add("hidden");
+        const form = $("#plugin-create-form"); if (form) form.reset();
         toggleCatFields();
     });
-    $("#pcf-cancel").addEventListener("click", () => {
-        $("#plugin-create-overlay").classList.add("hidden");
+    const cancel = $("#pcf-cancel");
+    if (cancel) cancel.addEventListener("click", () => {
+        const overlay = $("#plugin-create-overlay");
+        if (overlay) overlay.classList.add("hidden");
     });
-    $("#plugin-create-overlay").addEventListener("click", e => {
-        if (e.target === $("#plugin-create-overlay")) {
-            $("#plugin-create-overlay").classList.add("hidden");
-        }
+    const overlay = $("#plugin-create-overlay");
+    if (overlay) overlay.addEventListener("click", e => {
+        if (e.target === overlay) overlay.classList.add("hidden");
     });
-    $("#pcf-cat").addEventListener("change", toggleCatFields);
-    $("#plugin-create-form").addEventListener("submit", async e => {
+    const cat = $("#pcf-cat");
+    if (cat) cat.addEventListener("change", toggleCatFields);
+    const form = $("#plugin-create-form");
+    if (form) form.addEventListener("submit", async e => {
         e.preventDefault();
         const name = $("#pcf-name").value.trim();
         const desc = $("#pcf-desc").value.trim();
@@ -907,62 +916,83 @@ function initCreatePlugin() {
 }
 
 function toggleCatFields() {
-    const cat = $("#pcf-cat").value;
-    $("#pcf-lang-fields").classList.toggle("hidden", cat !== "language");
-    $("#pcf-theme-fields").classList.toggle("hidden", cat !== "theme");
-    $("#pcf-engine-fields").classList.toggle("hidden", cat !== "engine");
-    $("#pcf-ai-fields").classList.toggle("hidden", cat !== "ai");
+    const catEl = $("#pcf-cat");
+    if (!catEl) return;
+    const cat = catEl.value;
+    const langF = $("#pcf-lang-fields"); if (langF) langF.classList.toggle("hidden", cat !== "language");
+    const themeF = $("#pcf-theme-fields"); if (themeF) themeF.classList.toggle("hidden", cat !== "theme");
+    const engF = $("#pcf-engine-fields"); if (engF) engF.classList.toggle("hidden", cat !== "engine");
+    const aiF = $("#pcf-ai-fields"); if (aiF) aiF.classList.toggle("hidden", cat !== "ai");
     const runReq = $("#pcf-run");
-    if (cat === "language") runReq.setAttribute("required", "");
-    else runReq.removeAttribute("required");
+    if (runReq) {
+        if (cat === "language") runReq.setAttribute("required", "");
+        else runReq.removeAttribute("required");
+    }
 }
 
 function initAdmin() {
+    const btn = $("#btn-admin");
+    if (!btn) return;
     const savedKey = localStorage.getItem(SK_ADMIN_KEY);
-    if (savedKey) $("#admin-key").value = savedKey;
+    if (savedKey) {
+        const keyInput = $("#admin-key");
+        if (keyInput) keyInput.value = savedKey;
+    }
 
-    $("#btn-admin").addEventListener("click", () => {
-        $("#admin-overlay").classList.remove("hidden");
-        $("#admin-error").classList.add("hidden");
+    btn.addEventListener("click", () => {
+        const overlay = $("#admin-overlay");
+        if (!overlay) return;
+        overlay.classList.remove("hidden");
+        const err = $("#admin-error");
+        if (err) err.classList.add("hidden");
         if (savedKey) fetchPending();
     });
 
-    $("#admin-close").addEventListener("click", () => {
-        $("#admin-overlay").classList.add("hidden");
+    const close = $("#admin-close");
+    if (close) close.addEventListener("click", () => {
+        const overlay = $("#admin-overlay");
+        if (overlay) overlay.classList.add("hidden");
     });
 
-    $("#admin-overlay").addEventListener("click", e => {
-        if (e.target === $("#admin-overlay")) {
-            $("#admin-overlay").classList.add("hidden");
-        }
+    const overlay = $("#admin-overlay");
+    if (overlay) overlay.addEventListener("click", e => {
+        if (e.target === overlay) overlay.classList.add("hidden");
     });
 
-    $("#admin-login-btn").addEventListener("click", () => {
-        const key = $("#admin-key").value.trim();
+    const login = $("#admin-login-btn");
+    if (login) login.addEventListener("click", () => {
+        const keyInput = $("#admin-key");
+        if (!keyInput) return;
+        const key = keyInput.value.trim();
         if (!key) {
-            $("#admin-error").textContent = "Enter an API key.";
-            $("#admin-error").classList.remove("hidden");
+            const err = $("#admin-error");
+            if (err) { err.textContent = "Enter an API key."; err.classList.remove("hidden"); }
             return;
         }
         localStorage.setItem(SK_ADMIN_KEY, key);
-        $("#admin-error").classList.add("hidden");
+        const err = $("#admin-error");
+        if (err) err.classList.add("hidden");
         fetchPending(key);
     });
 
-    $("#admin-refresh").addEventListener("click", () => {
-        const key = $("#admin-key").value.trim() || localStorage.getItem(SK_ADMIN_KEY);
+    const refresh = $("#admin-refresh");
+    if (refresh) refresh.addEventListener("click", () => {
+        const keyInput = $("#admin-key");
+        const key = (keyInput ? keyInput.value.trim() : "") || localStorage.getItem(SK_ADMIN_KEY);
         fetchPending(key);
     });
 }
 
 async function fetchPending(key) {
-    key = key || $("#admin-key").value.trim() || localStorage.getItem(SK_ADMIN_KEY);
+    const keyInput = $("#admin-key");
+    key = key || (keyInput ? keyInput.value.trim() : "") || localStorage.getItem(SK_ADMIN_KEY);
     if (!key) {
-        $("#admin-error").textContent = "No API key set.";
-        $("#admin-error").classList.remove("hidden");
+        const err = $("#admin-error");
+        if (err) { err.textContent = "No API key set."; err.classList.remove("hidden"); }
         return;
     }
-    $("#admin-error").classList.add("hidden");
+    const errEl = $("#admin-error");
+    if (errEl) errEl.classList.add("hidden");
 
     try {
         const resp = await fetch(API_BASE + "/api/plugins/pending", {
@@ -971,25 +1001,26 @@ async function fetchPending(key) {
         if (!resp.ok) {
             if (resp.status === 401) {
                 localStorage.removeItem(SK_ADMIN_KEY);
-                $("#admin-error").textContent = "Invalid API key.";
+                if (errEl) { errEl.textContent = "Invalid API key."; errEl.classList.remove("hidden"); }
             } else {
-                $("#admin-error").textContent = "Server error: " + resp.status;
+                if (errEl) { errEl.textContent = "Server error: " + resp.status; errEl.classList.remove("hidden"); }
             }
-            $("#admin-error").classList.remove("hidden");
-            $("#admin-list").classList.add("hidden");
+            const adminList = $("#admin-list");
+            if (adminList) adminList.classList.add("hidden");
             return;
         }
         const data = await resp.json();
         renderPending(data.plugins || []);
-        $("#admin-list").classList.remove("hidden");
+        const adminList = $("#admin-list");
+        if (adminList) adminList.classList.remove("hidden");
     } catch (e) {
-        $("#admin-error").textContent = "Network error: " + e.message;
-        $("#admin-error").classList.remove("hidden");
+        if (errEl) { errEl.textContent = "Network error: " + e.message; errEl.classList.remove("hidden"); }
     }
 }
 
 function renderPending(plugins) {
     const list = $("#admin-pending-list");
+    if (!list) return;
     $("#admin-count").textContent = plugins.length;
 
     if (!plugins.length) {
@@ -997,7 +1028,7 @@ function renderPending(plugins) {
         return;
     }
 
-    const key = $("#admin-key").value.trim() || localStorage.getItem(SK_ADMIN_KEY);
+    const key = ($("#admin-key") ? $("#admin-key").value.trim() : "") || localStorage.getItem(SK_ADMIN_KEY);
 
     list.innerHTML = plugins.map(p => `
         <div class="admin-pending-entry" data-id="${p.id}">
@@ -1062,4 +1093,4 @@ if ("ontouchstart" in window || navigator.maxTouchPoints > 0) {
     document.addEventListener("touchmove", () => clearTimeout(longPressTimer));
 }
 
-init();
+init().catch(() => {});
