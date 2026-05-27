@@ -172,18 +172,152 @@ main { display: flex; flex: 1; overflow: hidden; }
 #share-toast.show { opacity: 1; }
 
 /* Themes */
-.theme-green { --bg: #021a02; --surface: #0a200a; --border: #0f3d0f; --text: #33ff33; --text-dim: #1a7a1a; --accent: #00ff00; --accent-dim: #00cc00; --accent-press: #009900; --error: #ff3333; }
-.theme-green #output { background: #010f01; }
-.theme-green #output::-webkit-scrollbar-track { background: #010f01; }
-.theme-green #output::-webkit-scrollbar-thumb { background: #0f3d0f; }
-.theme-amber { --bg: #1a1000; --surface: #201a08; --border: #3d2e0a; --text: #ffb830; --text-dim: #8a5c10; --accent: #ffaa00; --accent-dim: #cc8800; --accent-press: #996600; --error: #ff4444; }
+body { transition: background .3s, color .3s; }
+
+/* -- Terminal Green ------------------------------------------------- */
+.theme-green {
+    --bg: #021402; --surface: #0a1e0a; --border: #0f380f;
+    --text: #3f3; --text-dim: #1a7a1a; --accent: #0f0;
+    --accent-dim: #0c0; --accent-press: #090;
+    --error: #f33; --success: #0f0; --warn: #ff0;
+}
+.theme-green #output { background: #010d01; }
+.theme-green #output-toolbar { background: #051405; border-color: #0f380f; }
+.theme-green #output::-webkit-scrollbar-track { background: #010d01; }
+.theme-green #output::-webkit-scrollbar-thumb { background: #0f380f; }
+.theme-green #tabbar { background: #061606; }
+.theme-green #tabbar .tab:hover { background: #0d280d; }
+.theme-green #stdin-panel, .theme-green #stdin-input { background: #021002; }
+.theme-green .plugin-entry, .theme-green .setting, .theme-green .admin-pending-entry { border-color: #0f380f; }
+.theme-green .panel-body::-webkit-scrollbar-track { background: #0a1e0a; }
+.theme-green .panel-body::-webkit-scrollbar-thumb { background: #0f380f; }
+.theme-green #keyboard-bar button { background: #0d280d; border-color: #0f380f; }
+.theme-green #keyboard-bar button:active { background: #143a14; }
+.theme-green #clear-output, .theme-green #copy-output { border-color: #0f380f; }
+.theme-green .meta-info, .theme-green #output-toolbar { border-color: #0f380f; }
+.theme-green .ap-approve { border-color: #0a3; }
+.theme-green .ap-reject { border-color: #500; }
+.theme-green .btn-admin { border-color: #3d2e0a; }
+.theme-green .plugin-upcoming-badge { background: #0d280d; }
+
+/* -- Amber ----------------------------------------------------------- */
+.theme-amber {
+    --bg: #180e00; --surface: #221608; --border: #3a280a;
+    --text: #ffb830; --text-dim: #8a6010; --accent: #fa0;
+    --accent-dim: #d80; --accent-press: #a60;
+    --error: #f44; --success: #fa0; --warn: #fd0;
+}
 .theme-amber #output { background: #0f0800; }
+.theme-amber #output-toolbar { background: #140b02; border-color: #3a280a; }
 .theme-amber #output::-webkit-scrollbar-track { background: #0f0800; }
-.theme-amber #output::-webkit-scrollbar-thumb { background: #3d2e0a; }
-.theme-solar { --bg: #0a0a10; --surface: #141420; --border: #242440; --text: #ffe0c0; --text-dim: #8a7060; --accent: #ff8844; --accent-dim: #dd6622; --accent-press: #bb4400; --error: #ff5555; }
-.theme-solar #output { background: #05050a; }
-.theme-solar #output::-webkit-scrollbar-track { background: #05050a; }
-.theme-solar #output::-webkit-scrollbar-thumb { background: #242440; }
+.theme-amber #output::-webkit-scrollbar-thumb { background: #3a280a; }
+.theme-amber #tabbar { background: #1a0f04; }
+.theme-amber #tabbar .tab:hover { background: #2a1a08; }
+.theme-amber #stdin-panel, .theme-amber #stdin-input { background: #140a00; }
+.theme-amber .plugin-entry, .theme-amber .setting, .theme-amber .admin-pending-entry { border-color: #3a280a; }
+.theme-amber .panel-body::-webkit-scrollbar-track { background: #221608; }
+.theme-amber .panel-body::-webkit-scrollbar-thumb { background: #3a280a; }
+.theme-amber #keyboard-bar button { background: #2a1a08; border-color: #3a280a; }
+.theme-amber #keyboard-bar button:active { background: #3a2a10; }
+.theme-amber #clear-output, .theme-amber #copy-output { border-color: #3a280a; }
+.theme-amber .meta-info, .theme-amber #output-toolbar { border-color: #3a280a; }
+.theme-amber .ap-approve { border-color: #860; }
+.theme-amber .ap-reject { border-color: #500; }
+.theme-amber .plugin-upcoming-badge { background: #2a1a08; }
+
+/* -- Solar Flare ----------------------------------------------------- */
+.theme-solar {
+    --bg: #0c0c14; --surface: #181828; --border: #282848;
+    --text: #ffe0c0; --text-dim: #8a7060; --accent: #f84;
+    --accent-dim: #d62; --accent-press: #b40;
+    --error: #f55; --success: #f84; --warn: #fa0;
+}
+.theme-solar #output { background: #06060c; }
+.theme-solar #output-toolbar { background: #0d0d14; border-color: #282848; }
+.theme-solar #output::-webkit-scrollbar-track { background: #06060c; }
+.theme-solar #output::-webkit-scrollbar-thumb { background: #282848; }
+.theme-solar #tabbar { background: #101020; }
+.theme-solar #tabbar .tab:hover { background: #202038; }
+.theme-solar #stdin-panel, .theme-solar #stdin-input { background: #0a0a10; }
+.theme-solar .plugin-entry, .theme-solar .setting, .theme-solar .admin-pending-entry { border-color: #282848; }
+.theme-solar .panel-body::-webkit-scrollbar-track { background: #181828; }
+.theme-solar .panel-body::-webkit-scrollbar-thumb { background: #282848; }
+.theme-solar #keyboard-bar button { background: #202038; border-color: #282848; }
+.theme-solar #keyboard-bar button:active { background: #2a2a48; }
+.theme-solar #clear-output, .theme-solar #copy-output { border-color: #282848; }
+.theme-solar .meta-info, .theme-solar #output-toolbar { border-color: #282848; }
+.theme-solar .ap-approve { border-color: #a40; }
+.theme-solar .ap-reject { border-color: #500; }
+.theme-solar .plugin-upcoming-badge { background: #202038; }
+
+/* -- Nord ------------------------------------------------------------ */
+.theme-nord {
+    --bg: #242933; --surface: #2e3440; --border: #3b4252;
+    --text: #d8dee9; --text-dim: #5e6e82; --accent: #88c0d0;
+    --accent-dim: #5e81ac; --accent-press: #4c6a92;
+    --error: #bf616a; --success: #a3be8c; --warn: #ebcb8b;
+}
+.theme-nord #output { background: #1c222b; }
+.theme-nord #output-toolbar { background: #242933; border-color: #3b4252; }
+.theme-nord #output::-webkit-scrollbar-track { background: #1c222b; }
+.theme-nord #output::-webkit-scrollbar-thumb { background: #3b4252; }
+.theme-nord #tabbar { background: #282f3a; }
+.theme-nord #tabbar .tab:hover { background: #343c4a; }
+.theme-nord #stdin-panel, .theme-nord #stdin-input { background: #1e232c; }
+.theme-nord .plugin-entry, .theme-nord .setting, .theme-nord .admin-pending-entry { border-color: #3b4252; }
+.theme-nord .panel-body::-webkit-scrollbar-track { background: #2e3440; }
+.theme-nord .panel-body::-webkit-scrollbar-thumb { background: #3b4252; }
+.theme-nord #keyboard-bar button { background: #343c4a; border-color: #3b4252; }
+.theme-nord #keyboard-bar button:active { background: #3e4858; }
+.theme-nord #clear-output, .theme-nord #copy-output { border-color: #3b4252; }
+.theme-nord .meta-info, .theme-nord #output-toolbar { border-color: #3b4252; }
+.theme-nord .plugin-upcoming-badge { background: #343c4a; }
+
+/* -- Dracula --------------------------------------------------------- */
+.theme-dracula {
+    --bg: #1e1f29; --surface: #282a36; --border: #3d3f56;
+    --text: #f8f8f2; --text-dim: #6272a4; --accent: #bd93f9;
+    --accent-dim: #9a6ce0; --accent-press: #7a4fc7;
+    --error: #ff5555; --success: #50fa7b; --warn: #ffb86c;
+}
+.theme-dracula #output { background: #161720; }
+.theme-dracula #output-toolbar { background: #1e1f29; border-color: #3d3f56; }
+.theme-dracula #output::-webkit-scrollbar-track { background: #161720; }
+.theme-dracula #output::-webkit-scrollbar-thumb { background: #3d3f56; }
+.theme-dracula #tabbar { background: #222330; }
+.theme-dracula #tabbar .tab:hover { background: #303248; }
+.theme-dracula #stdin-panel, .theme-dracula #stdin-input { background: #1a1b24; }
+.theme-dracula .plugin-entry, .theme-dracula .setting, .theme-dracula .admin-pending-entry { border-color: #3d3f56; }
+.theme-dracula .panel-body::-webkit-scrollbar-track { background: #282a36; }
+.theme-dracula .panel-body::-webkit-scrollbar-thumb { background: #3d3f56; }
+.theme-dracula #keyboard-bar button { background: #303248; border-color: #3d3f56; }
+.theme-dracula #keyboard-bar button:active { background: #3a3c52; }
+.theme-dracula #clear-output, .theme-dracula #copy-output { border-color: #3d3f56; }
+.theme-dracula .meta-info, .theme-dracula #output-toolbar { border-color: #3d3f56; }
+.theme-dracula .plugin-upcoming-badge { background: #303248; }
+
+/* -- Monokai --------------------------------------------------------- */
+.theme-monokai {
+    --bg: #1e1f1c; --surface: #272822; --border: #3e3d32;
+    --text: #f8f8f0; --text-dim: #75715e; --accent: #a6e22e;
+    --accent-dim: #86c020; --accent-press: #689e18;
+    --error: #f92672; --success: #a6e22e; --warn: #e6db74;
+}
+.theme-monokai #output { background: #161714; }
+.theme-monokai #output-toolbar { background: #1e1f1c; border-color: #3e3d32; }
+.theme-monokai #output::-webkit-scrollbar-track { background: #161714; }
+.theme-monokai #output::-webkit-scrollbar-thumb { background: #3e3d32; }
+.theme-monokai #tabbar { background: #222320; }
+.theme-monokai #tabbar .tab:hover { background: #313228; }
+.theme-monokai #stdin-panel, .theme-monokai #stdin-input { background: #1a1b18; }
+.theme-monokai .plugin-entry, .theme-monokai .setting, .theme-monokai .admin-pending-entry { border-color: #3e3d32; }
+.theme-monokai .panel-body::-webkit-scrollbar-track { background: #272822; }
+.theme-monokai .panel-body::-webkit-scrollbar-thumb { background: #3e3d32; }
+.theme-monokai #keyboard-bar button { background: #313228; border-color: #3e3d32; }
+.theme-monokai #keyboard-bar button:active { background: #3b3a30; }
+.theme-monokai #clear-output, .theme-monokai #copy-output { border-color: #3e3d32; }
+.theme-monokai .meta-info, .theme-monokai #output-toolbar { border-color: #3e3d32; }
+.theme-monokai .plugin-upcoming-badge { background: #313228; }
 
 /* Hidden */
 .hidden { display: none !important; }
