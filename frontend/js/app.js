@@ -22,6 +22,7 @@ const BUILTIN_PLUGINS = [
     { id: "kotlin", name: "Kotlin", desc: "Kotlin JVM runtime — coming soon.", cat: "language", ver: "2.1.x", tpl: 'fun main() {\n    println("Hello, Kotlin!")\n}', upcoming: true },
     { id: "haskell", name: "Haskell", desc: "GHC Haskell — coming soon.", cat: "language", ver: "9.12.x", tpl: 'main :: IO ()\nmain = putStrLn "Hello, Haskell!"', upcoming: true },
     { id: "zig", name: "Zig", desc: "Zig compiler — coming soon.", cat: "language", ver: "0.14.x", tpl: 'const std = @import("std");\n\npub fn main() void {\n    std.debug.print("Hello, Zig!\\n", .{});\n}', upcoming: true },
+    { id: "plugin-creator", name: "Plugin Creator", desc: "Create and submit custom plugins. Currently metadata-only — full code editor coming soon.", cat: "engine", ver: "alpha", upcoming: true },
     { id: "openai-mcp", name: "OpenAI MCP", desc: "AI assistant powered by OpenAI models via MCP protocol.", cat: "ai", ver: "1.0.0" },
     { id: "claude-mcp", name: "Claude MCP", desc: "AI assistant powered by Anthropic Claude via MCP.", cat: "ai", ver: "1.0.0" },
     { id: "opencode-mcp", name: "OpenCode MCP", desc: "Connect OpenCode AI agent to execute and test code. This powers us right now.", cat: "ai", ver: "1.0.0" },
@@ -777,7 +778,7 @@ function renderPlugins() {
                 ${p.ver ? `<div class="plugin-version">v${p.ver}</div>` : ''}
             </div>
             <div class="plugin-action" data-plugin="${p.id}">
-                ${upcoming ? '<span class="plugin-disabled">Experimental</span>' : (isInstalled ? `<button class="btn-enable${isEnabled ? ' enabled' : ''}">${isEnabled ? 'Disable' : 'Enable'}</button><button class="btn-remove">&times;</button>` : '<button class="btn-install">Install</button>')}
+                ${upcoming ? (p.id === "plugin-creator" ? '<button class="btn-install">Open</button>' : '<span class="plugin-disabled">Experimental</span>') : (isInstalled ? `<button class="btn-enable${isEnabled ? ' enabled' : ''}">${isEnabled ? 'Disable' : 'Enable'}</button><button class="btn-remove">&times;</button>` : '<button class="btn-install">Install</button>')}
             </div>
         </div>`;
     }
@@ -803,6 +804,17 @@ function renderPlugins() {
         btn.addEventListener("click", e => {
             e.stopPropagation();
             const id = btn.closest(".plugin-action").dataset.plugin;
+            if (id === "plugin-creator") {
+                const overlay = $("#plugin-create-overlay");
+                if (overlay) {
+                    overlay.classList.remove("hidden");
+                    const err = $("#pcf-error"); if (err) err.classList.add("hidden");
+                    const ok = $("#pcf-success"); if (ok) ok.classList.add("hidden");
+                    const form = $("#plugin-create-form"); if (form) form.reset();
+                    toggleCatFields();
+                }
+                return;
+            }
             const action = btn.classList.contains("btn-install") ? "install" : btn.classList.contains("btn-remove") ? "remove" : btn.classList.contains("btn-enable") && btn.classList.contains("enabled") ? "disable" : "enable";
             handlePlugin(id, action);
         });
