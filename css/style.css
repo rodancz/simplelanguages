@@ -189,8 +189,8 @@ main { display: flex; flex: 1; overflow: hidden; }
 .hidden { display: none !important; }
 
 /* Plugin create form */
-#plugin-create-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 250; display: none; align-items: center; justify-content: center; }
-#plugin-create-overlay:not(.hidden) { display: flex; }
+#plugin-create-overlay, #admin-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 250; display: none; align-items: center; justify-content: center; }
+#plugin-create-overlay:not(.hidden), #admin-overlay:not(.hidden) { display: flex; }
 .plugin-create-form { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; width: 380px; max-width: 92vw; max-height: 90vh; overflow-y: auto; }
 .plugin-create-form h3 { font-size: 13px; margin-bottom: 14px; color: var(--accent); }
 .plugin-create-form label { display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 2px; text-transform: uppercase; letter-spacing: .5px; }
