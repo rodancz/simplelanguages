@@ -13,10 +13,11 @@ const SK_THEME = "sl_theme";
 const SK_SETTINGS = "sl_settings";
 const SK_FAVS = "sl_favs";
 const SK_FILES = "sl_files_";
+const SK_ADMIN_KEY = "sl_admin_key";
 
 const API_BASE = location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "" : "https://simplelanguages-backend.onrender.com";
 
-const PLUGINS = [
+const BUILTIN_PLUGINS = [
     { id: "swift", name: "Swift", desc: "Swift compiler — coming soon.", cat: "language", ver: "6.x", tpl: 'print("Hello, Swift!")', upcoming: true },
     { id: "kotlin", name: "Kotlin", desc: "Kotlin JVM runtime — coming soon.", cat: "language", ver: "2.1.x", tpl: 'fun main() {\n    println("Hello, Kotlin!")\n}', upcoming: true },
     { id: "haskell", name: "Haskell", desc: "GHC Haskell — coming soon.", cat: "language", ver: "9.12.x", tpl: 'main :: IO ()\nmain = putStrLn "Hello, Haskell!"', upcoming: true },
@@ -30,6 +31,8 @@ const PLUGINS = [
     { id: "amber-term", name: "Amber Terminal", desc: "Warm amber-on-black retro terminal theme.", cat: "theme", css: "amber" },
     { id: "solar-flare", name: "Solar Flare", desc: "High-contrast warm theme with orange accents.", cat: "theme", css: "solar" },
 ];
+
+let PLUGINS = [...BUILTIN_PLUGINS];
 
 const WEB_LANGS = ["html", "css", "javascript"];
 
@@ -89,6 +92,43 @@ async function init() {
     bindEvents();
     updateStatus();
     checkShareURL();
+    fetchApprovedPlugins();
+}
+
+async function fetchApprovedPlugins() {
+    try {
+        const resp = await fetch(API_BASE + "/api/plugins");
+        const data = await resp.json();
+        if (data.plugins && data.plugins.length) {
+            const userPlugins = data.plugins.map(p => ({
+                id: p.id,
+                name: p.name,
+                desc: p.desc,
+                cat: p.cat,
+                ver: p.ver || "",
+                tpl: p.tpl || "",
+                css: p.css || "",
+                upcoming: false,
+                source_filename: p.source_filename,
+                compile_cmd: p.compile_cmd,
+                run_cmd: p.run_cmd,
+            }));
+            const builtinIds = new Set(BUILTIN_PLUGINS.map(p => p.id));
+            const merged = [...BUILTIN_PLUGINS];
+            userPlugins.forEach(p => {
+                if (!builtinIds.has(p.id)) merged.push(p);
+            });
+            PLUGINS = merged;
+            if ($("#plugin-panel").classList.contains("open")) renderPlugins();
+            refreshLangSelector();
+        }
+    } catch {}
+}
+
+async function refreshLangSelector() {
+    const cur = files[activeFile] ? files[activeFile].lang : "python";
+    await buildLangSelector();
+    $("#language-select").value = cur;
 }
 
 function restoreCode() {
@@ -432,9 +472,22 @@ async function switchLanguage() {
 
 async function runCode() {
     if (!editors.length) return;
-    const code = editors[0].state.doc.toString();
+    saveCurFile();
+
+    // Web mode: render entirely client-side, no backend needed
+    if (isWebMode()) {
+        $("#run-btn").classList.add("running");
+        $("#run-btn").textContent = "...";
+        updateWebPreview();
+        execTimeEl.textContent = "client-side";
+        outputEl.innerHTML = '<span class="meta-info">Preview rendered locally in browser — see preview panel</span>';
+        $("#run-btn").classList.remove("running");
+        $("#run-btn").textContent = "▶ Run";
+        return;
+    }
+
+    const code = files[activeFile].code;
     const lang = files[activeFile].lang;
-    files[activeFile].code = code;
 
     $("#run-btn").classList.add("running");
     $("#run-btn").textContent = "...";
@@ -554,6 +607,8 @@ function bindEvents() {
     $("#help-overlay").addEventListener("click", e => { if (e.target === $("#help-overlay")) toggleHelp(); });
 
     initPlugins();
+    initCreatePlugin();
+    initAdmin();
 }
 
 function focusStdin() {
@@ -686,34 +741,60 @@ function renderPlugins() {
     const installed = getInstalled();
     const enabled = getEnabled();
     const query = ($("#plugin-search").value || "").toLowerCase();
+    const builtinIds = new Set(BUILTIN_PLUGINS.map(p => p.id));
 
+    const experimental = [];
     const byCat = {};
+    const community = [];
+
     PLUGINS.forEach(p => {
         if (query && !p.name.toLowerCase().includes(query) && !p.desc.toLowerCase().includes(query)) return;
-        if (!byCat[p.cat]) byCat[p.cat] = [];
-        byCat[p.cat].push(p);
+        const isBuiltin = builtinIds.has(p.id);
+        if (isBuiltin && p.upcoming) {
+            experimental.push(p);
+        } else if (!isBuiltin) {
+            community.push(p);
+        } else {
+            if (!byCat[p.cat]) byCat[p.cat] = [];
+            byCat[p.cat].push(p);
+        }
     });
 
     const catNames = { language: "Languages", ai: "AI Assistants", engine: "Engines", theme: "Themes" };
     let html = "";
+
+    function entry(p) {
+        const isInstalled = installed.includes(p.id);
+        const isEnabled = enabled.includes(p.id);
+        const upcoming = p.upcoming;
+        const isCommunity = !builtinIds.has(p.id);
+        return `<div class="plugin-entry">
+            <div class="plugin-info">
+                <div class="plugin-name">${esc(p.name)}${isEnabled && !upcoming ? ' <span class="plugin-active-badge">on</span>' : ''}${upcoming ? ' <span class="plugin-upcoming-badge">exp</span>' : ''}${isCommunity ? ' <span class="plugin-community-badge">community</span>' : ''}</div>
+                <div class="plugin-desc">${esc(p.desc)}</div>
+                ${p.ver ? `<div class="plugin-version">v${p.ver}</div>` : ''}
+            </div>
+            <div class="plugin-action" data-plugin="${p.id}">
+                ${upcoming ? '<span class="plugin-disabled">Experimental</span>' : (isInstalled ? `<button class="btn-enable${isEnabled ? ' enabled' : ''}">${isEnabled ? 'Disable' : 'Enable'}</button><button class="btn-remove">&times;</button>` : '<button class="btn-install">Install</button>')}
+            </div>
+        </div>`;
+    }
+
+    if (experimental.length) {
+        html += `<div class="plugin-cat-header experimental-hdr">Experimental</div>`;
+        experimental.forEach(p => { html += entry(p); });
+    }
+
     for (const [cat, plugins] of Object.entries(byCat)) {
         html += `<div class="plugin-cat-header">${catNames[cat] || cat}</div>`;
-        plugins.forEach(p => {
-            const isInstalled = installed.includes(p.id);
-            const isEnabled = enabled.includes(p.id);
-            const upcoming = p.upcoming;
-            html += `<div class="plugin-entry">
-                <div class="plugin-info">
-                    <div class="plugin-name">${esc(p.name)}${isEnabled && !upcoming ? ' <span class="plugin-active-badge">on</span>' : ''}${upcoming ? ' <span class="plugin-upcoming-badge">soon</span>' : ''}</div>
-                    <div class="plugin-desc">${esc(p.desc)}</div>
-                    ${p.ver ? `<div class="plugin-version">v${p.ver}</div>` : ''}
-                </div>
-                <div class="plugin-action" data-plugin="${p.id}">
-                    ${upcoming ? '<span class="plugin-disabled">Coming Soon</span>' : (isInstalled ? `<button class="btn-enable${isEnabled ? ' enabled' : ''}">${isEnabled ? 'Disable' : 'Enable'}</button><button class="btn-remove">&times;</button>` : '<button class="btn-install">Install</button>')}
-                </div>
-            </div>`;
-        });
+        plugins.forEach(p => { html += entry(p); });
     }
+
+    if (community.length) {
+        html += `<div class="plugin-cat-header community-hdr">Community</div>`;
+        community.forEach(p => { html += entry(p); });
+    }
+
     $("#plugin-list").innerHTML = html;
 
     $("#plugin-list").querySelectorAll(".plugin-action button").forEach(btn => {
@@ -744,6 +825,227 @@ function handlePlugin(id, action) {
     }
     updateStatus();
     renderPlugins();
+}
+
+function initCreatePlugin() {
+    $("#btn-create-plugin").addEventListener("click", () => {
+        $("#plugin-create-overlay").classList.remove("hidden");
+        $("#pcf-error").classList.add("hidden");
+        $("#pcf-success").classList.add("hidden");
+        $("#plugin-create-form").reset();
+        toggleCatFields();
+    });
+    $("#pcf-cancel").addEventListener("click", () => {
+        $("#plugin-create-overlay").classList.add("hidden");
+    });
+    $("#plugin-create-overlay").addEventListener("click", e => {
+        if (e.target === $("#plugin-create-overlay")) {
+            $("#plugin-create-overlay").classList.add("hidden");
+        }
+    });
+    $("#pcf-cat").addEventListener("change", toggleCatFields);
+    $("#plugin-create-form").addEventListener("submit", async e => {
+        e.preventDefault();
+        const name = $("#pcf-name").value.trim();
+        const desc = $("#pcf-desc").value.trim();
+        const cat = $("#pcf-cat").value;
+        const ver = $("#pcf-ver").value.trim();
+        const tpl = $("#pcf-tpl").value.trim();
+        const css = $("#pcf-css").value.trim();
+        const source_filename = $("#pcf-filename").value.trim() || null;
+        const run_cmd = $("#pcf-run").value.trim();
+        let compile_cmd = $("#pcf-compile").value.trim();
+
+        if (!name || !desc || !cat) {
+            $("#pcf-error").textContent = "Name, description, and category are required.";
+            $("#pcf-error").classList.remove("hidden");
+            return;
+        }
+
+        const body = { name, desc, cat, ver };
+        if (cat === "language") {
+            if (tpl) body.tpl = tpl;
+            if (source_filename) body.source_filename = source_filename;
+            if (run_cmd) body.run_cmd = run_cmd.split(/\s+/).filter(Boolean);
+            if (compile_cmd) body.compile_cmd = compile_cmd.split(/\s+/).filter(Boolean);
+        }
+        if (cat === "theme" && css) body.css = css;
+
+        try {
+            const btn = $("#plugin-create-form").querySelector(".btn-submit");
+            btn.disabled = true;
+            btn.textContent = "Submitting...";
+            const resp = await fetch(API_BASE + "/api/plugins", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+            });
+            const data = await resp.json();
+            btn.disabled = false;
+            btn.textContent = "Submit for Review";
+
+            if (!resp.ok) {
+                $("#pcf-error").textContent = data.error || "Failed to submit plugin.";
+                $("#pcf-error").classList.remove("hidden");
+                $("#pcf-success").classList.add("hidden");
+            } else {
+                $("#pcf-error").classList.add("hidden");
+                $("#pcf-success").classList.remove("hidden");
+                setTimeout(() => {
+                    $("#plugin-create-overlay").classList.add("hidden");
+                    fetchApprovedPlugins();
+                }, 1500);
+            }
+        } catch (err) {
+            $("#pcf-error").textContent = "Network error: " + err.message;
+            $("#pcf-error").classList.remove("hidden");
+            const btn = $("#plugin-create-form").querySelector(".btn-submit");
+            btn.disabled = false;
+            btn.textContent = "Submit for Review";
+        }
+    });
+}
+
+function toggleCatFields() {
+    const cat = $("#pcf-cat").value;
+    $("#pcf-lang-fields").classList.toggle("hidden", cat !== "language");
+    $("#pcf-theme-fields").classList.toggle("hidden", cat !== "theme");
+    $("#pcf-engine-fields").classList.toggle("hidden", cat !== "engine");
+    $("#pcf-ai-fields").classList.toggle("hidden", cat !== "ai");
+    const runReq = $("#pcf-run");
+    if (cat === "language") runReq.setAttribute("required", "");
+    else runReq.removeAttribute("required");
+}
+
+function initAdmin() {
+    const savedKey = localStorage.getItem(SK_ADMIN_KEY);
+    if (savedKey) $("#admin-key").value = savedKey;
+
+    $("#btn-admin").addEventListener("click", () => {
+        $("#admin-overlay").classList.remove("hidden");
+        $("#admin-error").classList.add("hidden");
+        if (savedKey) fetchPending();
+    });
+
+    $("#admin-close").addEventListener("click", () => {
+        $("#admin-overlay").classList.add("hidden");
+    });
+
+    $("#admin-overlay").addEventListener("click", e => {
+        if (e.target === $("#admin-overlay")) {
+            $("#admin-overlay").classList.add("hidden");
+        }
+    });
+
+    $("#admin-login-btn").addEventListener("click", () => {
+        const key = $("#admin-key").value.trim();
+        if (!key) {
+            $("#admin-error").textContent = "Enter an API key.";
+            $("#admin-error").classList.remove("hidden");
+            return;
+        }
+        localStorage.setItem(SK_ADMIN_KEY, key);
+        $("#admin-error").classList.add("hidden");
+        fetchPending(key);
+    });
+
+    $("#admin-refresh").addEventListener("click", () => {
+        const key = $("#admin-key").value.trim() || localStorage.getItem(SK_ADMIN_KEY);
+        fetchPending(key);
+    });
+}
+
+async function fetchPending(key) {
+    key = key || $("#admin-key").value.trim() || localStorage.getItem(SK_ADMIN_KEY);
+    if (!key) {
+        $("#admin-error").textContent = "No API key set.";
+        $("#admin-error").classList.remove("hidden");
+        return;
+    }
+    $("#admin-error").classList.add("hidden");
+
+    try {
+        const resp = await fetch(API_BASE + "/api/plugins/pending", {
+            headers: { "x-api-key": key },
+        });
+        if (!resp.ok) {
+            if (resp.status === 401) {
+                localStorage.removeItem(SK_ADMIN_KEY);
+                $("#admin-error").textContent = "Invalid API key.";
+            } else {
+                $("#admin-error").textContent = "Server error: " + resp.status;
+            }
+            $("#admin-error").classList.remove("hidden");
+            $("#admin-list").classList.add("hidden");
+            return;
+        }
+        const data = await resp.json();
+        renderPending(data.plugins || []);
+        $("#admin-list").classList.remove("hidden");
+    } catch (e) {
+        $("#admin-error").textContent = "Network error: " + e.message;
+        $("#admin-error").classList.remove("hidden");
+    }
+}
+
+function renderPending(plugins) {
+    const list = $("#admin-pending-list");
+    $("#admin-count").textContent = plugins.length;
+
+    if (!plugins.length) {
+        list.innerHTML = '<div style="color:var(--text-dim);font-size:10px;padding:12px 0">No pending plugins.</div>';
+        return;
+    }
+
+    const key = $("#admin-key").value.trim() || localStorage.getItem(SK_ADMIN_KEY);
+
+    list.innerHTML = plugins.map(p => `
+        <div class="admin-pending-entry" data-id="${p.id}">
+            <div class="ap-info">
+                <div class="ap-name">${esc(p.name)} <span style="font-size:8px;color:var(--text-dim)">${p.cat}</span></div>
+                <div class="ap-desc">${esc(p.desc)}</div>
+                <div class="ap-meta">v${p.ver || "?"} · ${p.submitted_at || ""}</div>
+            </div>
+            <div class="ap-actions">
+                <button class="ap-approve" onclick="window._adminAction('approve','${p.id}')">Approve</button>
+                <button class="ap-reject" onclick="window._adminAction('reject','${p.id}')">Reject</button>
+                <button class="ap-delete" onclick="window._adminAction('delete','${p.id}')">&times;</button>
+            </div>
+        </div>
+    `).join("");
+
+    window._adminAction = async (action, id) => {
+        const btn = list.querySelector(`[data-id="${id}"] .ap-${action === "delete" ? "delete" : action}`);
+        if (btn) { btn.disabled = true; btn.textContent = "..."; }
+
+        try {
+            let resp;
+            if (action === "delete") {
+                resp = await fetch(`${API_BASE}/api/plugins/${id}`, {
+                    method: "DELETE",
+                    headers: { "x-api-key": key },
+                });
+            } else {
+                resp = await fetch(`${API_BASE}/api/plugins/${id}/${action}`, {
+                    method: "POST",
+                    headers: { "x-api-key": key },
+                });
+            }
+
+            if (resp.ok) {
+                plugins = plugins.filter(p => p.id !== id);
+                renderPending(plugins);
+                fetchApprovedPlugins();
+            } else {
+                const err = await resp.json().catch(() => ({}));
+                alert(`Failed: ${err.error || resp.status}`);
+                if (btn) { btn.disabled = false; btn.textContent = action.charAt(0).toUpperCase() + action.slice(1); }
+            }
+        } catch (e) {
+            alert("Network error: " + e.message);
+            if (btn) { btn.disabled = false; btn.textContent = action.charAt(0).toUpperCase() + action.slice(1); }
+        }
+    };
 }
 
 // Mobile touch detection for keyboard bar

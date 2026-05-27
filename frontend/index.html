@@ -46,6 +46,8 @@
         <div class="panel-header">
             <span>Plugins</span>
             <input id="plugin-search" placeholder="Filter…">
+            <button id="btn-create-plugin" class="btn-create" title="Create Plugin">+ New</button>
+            <button id="btn-admin" class="btn-admin" title="Admin / Moderate">Admin</button>
             <button id="plugin-close">&times;</button>
         </div>
         <div class="panel-body" id="plugin-list"></div>
@@ -87,6 +89,74 @@
         </div>
     </div>
     <div id="share-toast">Link copied!</div>
+    <div id="plugin-create-overlay" class="hidden">
+        <form class="plugin-create-form" id="plugin-create-form">
+            <h3>Create Plugin</h3>
+            <label>Name</label>
+            <input type="text" id="pcf-name" placeholder="My Plugin" required maxlength="60">
+            <label>Description</label>
+            <textarea id="pcf-desc" placeholder="What does it do?" required maxlength="200"></textarea>
+            <label>Category</label>
+            <select id="pcf-cat" required>
+                <option value="">-- select --</option>
+                <option value="language">Language</option>
+                <option value="theme">Theme</option>
+                <option value="engine">Engine</option>
+                <option value="ai">AI Assistant</option>
+            </select>
+            <label>Version</label>
+            <input type="text" id="pcf-ver" placeholder="1.0.0" maxlength="20">
+            <div id="pcf-lang-fields" class="hidden">
+                <label>Template Code</label>
+                <textarea id="pcf-tpl" placeholder='print("Hello, World!")'></textarea>
+                <label>Source Filename</label>
+                <input type="text" id="pcf-filename" placeholder="main.py">
+                <label>Compile Command (optional)</label>
+                <input type="text" id="pcf-compile" placeholder="gcc {file} -o {dir}/main">
+                <label>Run Command</label>
+                <input type="text" id="pcf-run" placeholder="python3 {file}" value="" required>
+            </div>
+            <div id="pcf-theme-fields" class="hidden">
+                <label>CSS Class Name</label>
+                <input type="text" id="pcf-css" placeholder="my-theme" maxlength="30">
+            </div>
+            <div id="pcf-engine-fields" class="hidden">
+                <label>Engine Description</label>
+                <textarea id="pcf-engine-desc" placeholder="Explain what this engine does..."></textarea>
+            </div>
+            <div id="pcf-ai-fields" class="hidden">
+                <label>AI Provider Info</label>
+                <textarea id="pcf-ai-desc" placeholder="Describe the AI provider / capabilities..."></textarea>
+            </div>
+            <div id="pcf-error" class="form-error hidden"></div>
+            <div id="pcf-success" class="form-success hidden">Plugin submitted for review!</div>
+            <div class="form-buttons">
+                <button type="button" class="btn-cancel" id="pcf-cancel">Cancel</button>
+                <button type="submit" class="btn-submit">Submit for Review</button>
+            </div>
+        </form>
+    </div>
+    <div id="admin-overlay" class="hidden">
+        <div class="plugin-create-form" id="admin-panel" style="width:440px">
+            <h3>Admin — Plugin Moderation</h3>
+            <label>API Key</label>
+            <div style="display:flex;gap:6px;margin-bottom:10px">
+                <input type="password" id="admin-key" placeholder="Enter owner API key…" style="flex:1;margin-bottom:0">
+                <button id="admin-login-btn" class="btn-submit" style="margin-bottom:0">Unlock</button>
+            </div>
+            <div id="admin-error" class="form-error hidden"></div>
+            <div id="admin-list" class="hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:11px;color:var(--text-dim)"><span id="admin-count">0</span> pending</span>
+                    <button id="admin-refresh" class="btn-admin" style="font-size:10px;padding:2px 8px">Refresh</button>
+                </div>
+                <div id="admin-pending-list" style="max-height:50vh;overflow-y:auto"></div>
+            </div>
+            <div class="form-buttons">
+                <button type="button" class="btn-cancel" id="admin-close">Close</button>
+            </div>
+        </div>
+    </div>
     <script type="module" src="js/bundle.js"></script>
 </body>
 </html>
