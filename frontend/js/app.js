@@ -31,6 +31,9 @@ const BUILTIN_PLUGINS = [
     { id: "green-term", name: "Terminal Green", desc: "Classic CRT green-on-black terminal theme.", cat: "theme", css: "green" },
     { id: "amber-term", name: "Amber Terminal", desc: "Warm amber-on-black retro terminal theme.", cat: "theme", css: "amber" },
     { id: "solar-flare", name: "Solar Flare", desc: "High-contrast warm theme with orange accents.", cat: "theme", css: "solar" },
+    { id: "nord-theme", name: "Nord", desc: "Cool arctic blue-grey palette. Calm and focused.", cat: "theme", css: "nord" },
+    { id: "dracula-theme", name: "Dracula", desc: "Purple-dark with pink highlights. The classic Dracula scheme.", cat: "theme", css: "dracula" },
+    { id: "monokai-theme", name: "Monokai", desc: "Warm dark with green accents. Iconic Monokai colors.", cat: "theme", css: "monokai" },
 ];
 
 let PLUGINS = [...BUILTIN_PLUGINS];
